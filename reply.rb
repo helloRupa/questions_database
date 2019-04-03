@@ -82,4 +82,30 @@ class Reply
 
     Reply.new(data.first)
   end
+
+  def save
+    @id.nil? ? insert : update
+  end
+
+  def insert
+    QuestionsDatabase.instance.execute(<<-SQL, @question_id, @parent_id, @author_id, @body)
+      INSERT INTO
+        replies (question_id, parent_id, author_id, body)
+      VALUES
+        (?, ?, ?, ?)
+    SQL
+
+    @id = QuestionsDatabase.instance.last_insert_row_id
+  end
+
+  def update
+    QuestionsDatabase.instance.execute(<<-SQL, @question_id, @parent_id, @author_id, @body, @id)
+      UPDATE
+        replies
+      SET
+        question_id = ?, parent_id = ?, author_id = ?, body = ?
+      WHERE
+        id = ?
+    SQL
+  end
 end
