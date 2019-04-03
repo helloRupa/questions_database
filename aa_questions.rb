@@ -218,19 +218,13 @@ class QuestionFollow
       FROM
         questions
       JOIN
-        (
-          SELECT
-            question_id, COUNT(question_id)
-          FROM
-            question_follows
-          GROUP BY
-            question_id
-          ORDER BY
-            COUNT(question_id) DESC
-          LIMIT ?
-        ) AS max_follows ON questions.id = max_follows.question_id
-      WHERE
-        questions.id = max_follows.question_id
+        question_follows ON questions.id = question_follows.question_id
+      GROUP BY
+        question_follows.question_id
+      ORDER BY
+        COUNT(question_follows.question_id) DESC
+      LIMIT
+        ?
     SQL
 
     return nil if data.empty?
@@ -407,19 +401,13 @@ class QuestionLike
       FROM
         questions
       JOIN
-        (
-          SELECT
-            question_id
-          FROM
-            question_likes
-          GROUP BY
-            question_id
-          ORDER BY
-            COUNT(question_id) DESC
-          LIMIT ?
-        ) AS ordered ON ordered.question_id = questions.id
-        WHERE
-          ordered.question_id = questions.id
+        question_likes ON questions.id = question_likes.question_id
+      GROUP BY
+        question_likes.question_id
+      ORDER BY
+        COUNT(question_likes.question_id) DESC
+      LIMIT
+        ?
     SQL
 
     return nil if data.empty?
