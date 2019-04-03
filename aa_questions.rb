@@ -58,6 +58,10 @@ class Question
   def replies
     Reply.find_by_question_id(@id)
   end
+
+  def followers
+    QuestionFollow.followers_for_question_id(@id)
+  end
 end
 
 
@@ -107,6 +111,10 @@ class User
   def authored_replies
     Reply.find_by_user_id(@id)
   end
+
+  def followed_questions
+    QuestionFollow.followed_questions_for_user_id(@id)
+  end
 end
 
 
@@ -132,6 +140,40 @@ class QuestionFollow
     @id = options['id']
     @question_id = options['question_id']
     @user_id = options['user_id']
+  end
+
+  def self.followers_for_question_id(question_id)
+    data = QuestionsDatabase.instance.execute(<<-SQL, question_id)
+      SELECT
+        users.*
+      FROM
+        users
+      JOIN
+        question_follows ON users.id = question_follows.user_id
+      WHERE
+        question_follows.question_id = ?
+    SQL
+
+    return nil if data.empty?
+
+    data.map { |datum| User.new(datum) }
+  end
+
+  def self.followed_questions_for_user_id(user_id)
+    data = QuestionsDatabase.instance.execute(<<-SQL, user_id)
+      SELECT
+        *
+      FROM
+        questions
+      JOIN
+        question_follows ON questions.id = question_follows.question_id
+      WHERE
+        question_follows.user_id = ?
+    SQL
+
+    return nil if data.empty?
+
+    data.map { |datum| Question.new(datum) }
   end
 end
 
@@ -245,4 +287,3 @@ class QuestionLike
     @question_id = options['question_id']
   end
 end
-
