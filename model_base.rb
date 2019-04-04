@@ -40,4 +40,44 @@ class ModelBase
 
     data.map { |datum| new(datum) }
   end
+
+  def save
+    @id.nil? ? insert : update
+  end
+
+  def insert
+    table, attrs, values = obj_attrs
+    attr_str = attrs.map { |attr| attr.to_s[1..-1] }.join(', ')
+    q_marks = ('?' * values.length).split('').join(', ')
+
+    QuestionsDatabase.instance.execute(<<-SQL, *values)
+      INSERT INTO
+        #{table} (#{attr_str})
+      VALUES
+        (#{q_marks})
+    SQL
+
+    @id = QuestionsDatabase.instance.last_insert_row_id
+  end
+
+  def update
+    table, attrs, values = obj_attrs
+    attr_val_str = attrs.map { |attr| attr.to_s[1..-1] }.join(' = ?, ') + ' = ?'
+
+    QuestionsDatabase.instance.execute(<<-SQL, *values, @id)
+      UPDATE
+        #{table}
+      SET
+        #{attr_val_str}
+      WHERE
+        id = ?
+    SQL
+  end
+
+  def obj_attrs
+    table = C_TO_TABLE[self.class.name]
+    attrs = instance_variables
+    values = attrs.map { |attr| instance_variable_get(attr) }
+    [table, attrs, values]
+  end
 end
