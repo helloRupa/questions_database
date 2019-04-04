@@ -1,21 +1,7 @@
 require_relative 'aa_questions'
+require_relative 'model_base'
 
-class Question
-  def self.find_by_id(id)
-    data = QuestionsDatabase.instance.execute(<<-SQL, id)
-      SELECT
-        *
-      FROM
-        questions
-      WHERE
-        id = ?
-    SQL
-
-    return nil if data.empty?
-
-    Question.new(data.first)
-  end
-
+class Question < ModelBase
   attr_accessor :id, :title, :author_id, :body
 
   def initialize(options)

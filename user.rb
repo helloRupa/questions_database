@@ -1,21 +1,7 @@
 require_relative 'aa_questions'
+require_relative 'model_base'
 
-class User
-  def self.find_by_id(id)
-    data = QuestionsDatabase.instance.execute(<<-SQL, id)
-      SELECT
-        *
-      FROM
-        users
-      WHERE
-        id = ?
-    SQL
-
-    return nil if data.empty?
-
-    User.new(data.first)
-  end
-
+class User < ModelBase
   def self.find_by_name(fname, lname)
     data = QuestionsDatabase.instance.execute(<<-SQL, fname, lname)
       SELECT

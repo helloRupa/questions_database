@@ -1,21 +1,7 @@
 require_relative 'aa_questions'
+require_relative 'model_base'
 
-class QuestionFollow
-  def self.find_by_id(id)
-    data = QuestionsDatabase.instance.execute(<<-SQL, id)
-      SELECT
-        *
-      FROM
-        question_follows
-      WHERE
-        id = ?
-    SQL
-
-    return nil if data.empty?
-
-    QuestionFollow.new(data.first)
-  end
-
+class QuestionFollow < ModelBase
   attr_accessor :id, :question_id, :user_id
 
   def initialize(options)

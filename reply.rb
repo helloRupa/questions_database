@@ -1,21 +1,7 @@
 require_relative 'aa_questions'
+require_relative 'model_base'
 
-class Reply
-  def self.find_by_id(id)
-    data = QuestionsDatabase.instance.execute(<<-SQL, id)
-      SELECT
-        *
-      FROM
-        replies
-      WHERE
-        id = ?
-    SQL
-
-    return nil if data.empty?
-
-    Reply.new(data.first)
-  end
-
+class Reply < ModelBase
   attr_accessor :id, :question_id, :parent_id, :author_id, :body
 
   def initialize(options)
@@ -88,6 +74,8 @@ class Reply
   end
 
   def insert
+    update_parent_id
+
     QuestionsDatabase.instance.execute(<<-SQL, @question_id, @parent_id, @author_id, @body)
       INSERT INTO
         replies (question_id, parent_id, author_id, body)
@@ -107,5 +95,18 @@ class Reply
       WHERE
         id = ?
     SQL
+  end
+
+  def update_parent_id
+    data = QuestionsDatabase.instance.execute(<<-SQL, @question_id)
+      SELECT
+        MAX(id) AS parent
+      FROM
+        replies
+      WHERE
+        question_id = ?
+    SQL
+
+    @parent_id = data.empty? ? nil : data.first['parent']
   end
 end
